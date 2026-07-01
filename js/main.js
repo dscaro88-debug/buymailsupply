@@ -4,29 +4,25 @@
   var html = document.documentElement;
   var langBtns = document.querySelectorAll('.lang-btn');
   var typedTextEl = document.getElementById('typedText');
-  var typedCursor = document.querySelector('.typed-cursor');
   var typeInterval = null;
 
   // ===== Language Switch =====
   function setLang(lang) {
-    // Update text content
     document.querySelectorAll('[data-' + lang + ']').forEach(function (el) {
       var text = el.getAttribute('data-' + lang);
       if (text) el.innerHTML = text;
     });
-    // Update placeholders
     document.querySelectorAll('[data-' + lang + '-placeholder]').forEach(function (el) {
       var ph = el.getAttribute('data-' + lang + '-placeholder');
       if (ph) el.setAttribute('placeholder', ph);
     });
-    // Update buttons
     langBtns.forEach(function (btn) {
       btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
     });
     html.setAttribute('lang', lang);
-    try { localStorage.setItem('clason_lang', lang); } catch (e) {}
-    // Restart typewriter on language change
-    startTypewriter(lang);
+    try { localStorage.setItem('buymail_lang', lang); } catch (e) {}
+    // Restart typewriter if on homepage
+    if (typedTextEl) startTypewriter(lang);
   }
 
   langBtns.forEach(function (btn) {
@@ -36,15 +32,14 @@
   });
 
   var savedLang = 'en';
-  try { savedLang = localStorage.getItem('clason_lang') || 'en'; } catch (e) {}
+  try { savedLang = localStorage.getItem('buymail_lang') || 'en'; } catch (e) {}
 
-  // ===== Typewriter effect =====
+  // ===== Typewriter (Homepage only) =====
   function startTypewriter(lang) {
     if (!typedTextEl) return;
     if (typeInterval) { clearInterval(typeInterval); typeInterval = null; }
     var text = typedTextEl.getAttribute('data-' + (lang || savedLang)) || typedTextEl.getAttribute('data-en');
     typedTextEl.textContent = '';
-    if (typedCursor) typedCursor.style.display = 'inline-block';
     var i = 0;
     typeInterval = setInterval(function () {
       if (i < text.length) {
@@ -57,15 +52,36 @@
     }, 60);
   }
 
-  // Initial load
+  // Initial language load
   setLang(savedLang);
+
+  // ===== Highlight active nav link =====
+  var currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  if (currentPath === '') currentPath = 'index.html';
+  var navLinks = document.getElementById('navLinks');
+  if (navLinks) {
+    var links = navLinks.querySelectorAll('a');
+    links.forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (href === currentPath || (currentPath === 'index.html' && href === 'index.html')) {
+        link.style.color = '#e64a19';
+      }
+    });
+  }
 
   // ===== Navbar scroll =====
   var navbar = document.getElementById('navbar');
   var backTop = document.getElementById('backTop');
+  var isHome = (currentPath === 'index.html' || currentPath === '');
+
+  // Inner pages: navbar starts as scrolled (dark bg)
+  if (!isHome && navbar) {
+    navbar.classList.add('scrolled');
+  }
+
   function onScroll() {
     var y = window.pageYOffset;
-    if (navbar) navbar.classList.toggle('scrolled', y > 50);
+    if (navbar) navbar.classList.toggle('scrolled', isHome ? y > 50 : true);
     if (backTop) backTop.classList.toggle('show', y > 500);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -80,7 +96,6 @@
 
   // ===== Mobile menu =====
   var mobileToggle = document.getElementById('mobileToggle');
-  var navLinks = document.getElementById('navLinks');
   if (mobileToggle && navLinks) {
     mobileToggle.addEventListener('click', function () {
       mobileToggle.classList.toggle('active');
@@ -104,7 +119,7 @@
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     revealEls.forEach(function (el) { observer.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('visible'); });
@@ -145,7 +160,7 @@
     });
   }
 
-  // ===== Testimonial Slider =====
+  // ===== Testimonial Slider (Homepage only) =====
   var slides = document.querySelectorAll('.testi-slide');
   var dotsContainer = document.getElementById('tcDots');
   var prevBtn = document.getElementById('prevSlide');
@@ -183,6 +198,21 @@
     resetTimer();
   }
 
+  // ===== FAQ Accordion (Resources page) =====
+  var faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach(function (item) {
+    var btn = item.querySelector('.faq-q');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        // Close others
+        faqItems.forEach(function (other) {
+          if (other !== item) other.classList.remove('open');
+        });
+        item.classList.toggle('open');
+      });
+    }
+  });
+
   // ===== Contact form =====
   var form = document.getElementById('contactForm');
   if (form) {
@@ -191,7 +221,7 @@
       var btn = form.querySelector('button[type="submit"]');
       var original = btn.innerHTML;
       var currentLang = 'en';
-      try { currentLang = localStorage.getItem('clason_lang') || 'en'; } catch (e) {}
+      try { currentLang = localStorage.getItem('buymail_lang') || 'en'; } catch (e) {}
       btn.disabled = true;
       btn.innerHTML = currentLang === 'ru' ? 'Отправка...' : 'Sending...';
       setTimeout(function () {
@@ -206,19 +236,5 @@
       }, 1200);
     });
   }
-
-  // ===== Smooth scroll =====
-  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
-    anchor.addEventListener('click', function (e) {
-      var href = this.getAttribute('href');
-      if (href === '#' || !href) return;
-      var target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        var top = target.getBoundingClientRect().top + window.pageYOffset - 70;
-        window.scrollTo({ top: top, behavior: 'smooth' });
-      }
-    });
-  });
 
 })();
