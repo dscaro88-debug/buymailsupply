@@ -80,7 +80,7 @@ h1, h2, h3, h4 { font-family:'Oswald', 'Inter', sans-serif; font-weight:700; lin
 }
 .logo-text { display:flex; flex-direction:column; line-height:1; }
 .logo-name { font-family:'Oswald'; font-weight:700; font-size:1.25rem; color:#fff; }
-.logo-tagline { font-size:.7rem; color:#e64a19; font-weight:600; letter-spacing:1px; }
+.logo-tagline { font-size:1.25rem; color:#e64a19; font-weight:600; letter-spacing:1px; }
 .nav-links { display:flex; gap:32px; }
 .nav-links a {
   font-size:.82rem; font-weight:600; color:rgba(255,255,255,.85); text-transform:uppercase; letter-spacing:1px;
